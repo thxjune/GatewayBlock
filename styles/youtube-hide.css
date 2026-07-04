@@ -1,0 +1,47 @@
+/* GatewayBlock — YouTube cosmetic ad hiding
+   Hides every static ad surface on YouTube: masthead banners,
+   in-feed promos, sidebar companions, in-player overlays. */
+
+/* Homepage masthead banner */
+#masthead-ad,
+ytd-rich-section-renderer:has(ytd-statement-banner-renderer),
+ytd-ad-slot-renderer,
+ytd-in-feed-ad-layout-renderer,
+ytd-banner-promo-renderer,
+ytd-video-masthead-ad-v3-renderer,
+ytd-primetime-promo-renderer,
+
+/* In-feed / search results ads */
+ytd-search-pyv-renderer,
+ytd-promoted-sparkles-web-renderer,
+ytd-promoted-sparkles-text-search-renderer,
+ytd-promoted-video-renderer,
+ytd-compact-promoted-video-renderer,
+
+/* Watch page: sidebar companion + below-player ads */
+#player-ads,
+#panels ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-ads"],
+ytd-companion-slot-renderer,
+ytd-action-companion-ad-renderer,
+ytd-display-ad-renderer,
+#related ytd-ad-slot-renderer,
+#items > ytd-ad-slot-renderer,
+
+/* In-player overlay/banner ads (belt-and-suspenders with the JS) */
+.ytp-ad-overlay-container,
+.ytp-ad-overlay-slot,
+.ytp-ad-text-overlay,
+.ytp-ad-image-overlay,
+.ytp-ad-progress-list,
+.ytp-ad-message-container,
+
+/* Shorts ads */
+ytd-reel-video-renderer:has(ytd-ad-slot-renderer),
+ytm-paid-content-overlay-renderer,
+
+/* Mobile web (m.youtube.com) */
+ytm-promoted-sparkles-web-renderer,
+ytm-companion-slot,
+ytm-companion-ad-renderer {
+  display: none !important;
+}

@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Claude Code local settings
+.claude/
+
+# unrelated local experiments — not part of the extension
+starfield-wallpaper/
+
+# generated Xcode wrapper project (recreate with the converter)
+*-App/
+
+# logs
+*.log

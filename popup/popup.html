@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      width: 260px;
+      margin: 0;
+      padding: 16px;
+      background: transparent;
+    }
+    h1 {
+      font-size: 15px;
+      margin: 0 0 2px;
+      letter-spacing: -0.2px;
+    }
+    .sub {
+      font-size: 11px;
+      opacity: 0.55;
+      margin-bottom: 14px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-top: 1px solid rgba(128, 128, 128, 0.18);
+      font-size: 12.5px;
+    }
+    .row:first-of-type {
+      border-top: none;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #30c552;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .count {
+      font-variant-numeric: tabular-nums;
+      opacity: 0.6;
+      font-size: 11.5px;
+    }
+    .foot {
+      margin-top: 12px;
+      font-size: 10.5px;
+      opacity: 0.45;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <h1>GatewayBlock</h1>
+  <div class="sub">Active on this Safari profile</div>
+
+  <div class="row"><span><span class="dot"></span>Ad networks blocked</span><span class="count">50 rules</span></div>
+  <div class="row"><span><span class="dot"></span>Trackers blocked</span><span class="count">30 rules</span></div>
+  <div class="row"><span><span class="dot"></span>Popups / popunders</span><span class="count">20 rules + shield</span></div>
+  <div class="row"><span><span class="dot"></span>YouTube video ads</span><span class="count">skip + 16x</span></div>
+
+  <div class="foot">
+    Video ads on YouTube are skipped or fast-forwarded automatically.
+    If one slips through, refresh the page — YouTube changes its
+    player markup periodically.
+  </div>
+</body>
+</html>

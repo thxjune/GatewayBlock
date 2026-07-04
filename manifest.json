@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "GatewayBlock",
+  "version": "1.0",
+  "description": "All-around ad blocker for Safari: network-level ad/tracker blocking, popup killing, and YouTube video ad skipping.",
+  "icons": {
+    "48": "images/icon-48.png",
+    "96": "images/icon-96.png",
+    "128": "images/icon-128.png",
+    "256": "images/icon-256.png",
+    "512": "images/icon-512.png"
+  },
+  "background": {
+    "scripts": ["scripts/background.js"],
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["scripts/youtube-adblock.js"],
+      "css": ["styles/youtube-hide.css"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["scripts/global-annoyances.js"],
+      "css": ["styles/global-hide.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ad_network_rules",
+        "enabled": true,
+        "path": "rules/ad-networks.json"
+      },
+      {
+        "id": "tracker_rules",
+        "enabled": true,
+        "path": "rules/trackers.json"
+      },
+      {
+        "id": "popup_rules",
+        "enabled": true,
+        "path": "rules/popups-annoyances.json"
+      }
+    ]
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "48": "images/icon-48.png",
+      "96": "images/icon-96.png"
+    },
+    "default_title": "GatewayBlock"
+  }
+}

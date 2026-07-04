@@ -1,0 +1,31 @@
+/* GatewayBlock — global cosmetic hiding
+   Conservative, high-confidence selectors only. Aggressive generic
+   selectors (like [class*="ad"]) break real sites, so everything
+   here is a known ad container pattern. */
+
+ins.adsbygoogle,
+[id^="div-gpt-ad"],
+[id^="google_ads_iframe"],
+iframe[src*="doubleclick.net"],
+iframe[src*="googlesyndication.com"],
+iframe[src*="amazon-adsystem.com"],
+[data-ad-slot],
+[data-ad-client],
+[data-google-query-id],
+.OUTBRAIN,
+[data-widget-id^="ob_"],
+.trc_related_container,
+[id^="taboola-"],
+.mgbox[data-type="_mgwidget"],
+[id^="rc-widget"],
+.revcontent,
+[class~="ad-banner"],
+[class~="ad-leaderboard"],
+[class~="ad-sidebar"],
+[id="ad-top"],
+[id="ad-bottom"],
+[id="ad-leaderboard"],
+[aria-label="advertisement" i],
+[aria-label="Sponsored" i] {
+  display: none !important;
+}
