@@ -2,6 +2,23 @@
    Hides every static ad surface on YouTube: masthead banners,
    in-feed promos, sidebar companions, in-player overlays. */
 
+/* Instant video-ad blackout.
+   YouTube puts `ad-showing`/`ad-interrupting` on the player the moment
+   an ad loads. CSS reacts to that class with zero delay — even in
+   unfocused windows, where Safari throttles the JS timers that drive
+   the skipper. The player background is already black, so while the
+   JS skips/fast-forwards, the user sees a black frame instead of the ad.
+   opacity (not display) so the skip button keeps its layout and its
+   click handler still fires when the JS clicks it. */
+.html5-video-player.ad-showing video.html5-main-video,
+.html5-video-player.ad-interrupting video.html5-main-video,
+.html5-video-player.ad-showing .ytp-ad-module,
+.html5-video-player.ad-interrupting .ytp-ad-module,
+.html5-video-player.ad-showing .ytp-ad-player-overlay,
+.html5-video-player.ad-showing .ytp-ad-player-overlay-layout {
+  opacity: 0 !important;
+}
+
 /* Homepage masthead banner */
 #masthead-ad,
 ytd-rich-section-renderer:has(ytd-statement-banner-renderer),
