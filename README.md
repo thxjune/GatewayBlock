@@ -2,11 +2,18 @@
 
 A Safari Web Extension that does three things:
 
-1. **YouTube video ads** (the original problem) — a content script watches the
-   player, clicks Skip the instant it appears, and fast-forwards unskippable
-   ads at 16x while muted. Your real volume/speed settings are restored the
-   moment the ad ends. It also removes YouTube's "ad blockers violate..."
-   enforcement dialog and resumes playback.
+1. **YouTube video ads** (the original problem) — two layers:
+   - **Ad data pruning (primary)** — a script injected into the page's own
+     JS context strips the ad data (`adPlacements`, `adSlots`, `playerAds`)
+     out of YouTube's API responses before the player reads them. The
+     player believes the video has no ads, so nothing loads or plays at
+     all — the same `json-prune` technique uBlock Origin uses.
+   - **Skipper (fallback)** — a content script watches the player, clicks
+     Skip the instant it appears, and fast-forwards unskippable ads at 16x
+     while muted, restoring your real volume/speed after. Catches anything
+     the pruner misses (e.g. server-stitched ads). It also removes
+     YouTube's "ad blockers violate..." enforcement dialog and resumes
+     playback.
 2. **Network-level blocking** — 100 declarative rules blocking the major ad
    networks, trackers, and popup/popunder networks before they even load.
 3. **Annoyance cleanup** — a global script that neutralizes popunder click
@@ -74,7 +81,8 @@ videos where an ad plays for a second or two.
 
 ```
 manifest.json                  extension config (MV3)
-scripts/youtube-adblock.js     YouTube video ad skipper (the core)
+scripts/youtube-json-prune.js  strips ad data from API responses (primary)
+scripts/youtube-adblock.js     YouTube video ad skipper (fallback)
 scripts/global-annoyances.js   popunder shield + ad shell cleanup
 scripts/background.js          minimal background worker
 styles/youtube-hide.css        YouTube static ad hiding
