@@ -93,16 +93,26 @@
     "ytd-mini-guide-entry-renderer"         // collapsed guide
   ];
 
+  // Only remove nodes the CSS did NOT already hide. Removal is
+  // irreversible until YouTube re-renders, so anything CSS handles is
+  // left in place — that's what lets the popup toggle restore Shorts
+  // on an open tab instantly instead of needing a reload.
+  function cssMissed(el) {
+    return getComputedStyle(el).display !== "none";
+  }
+
   function sweep() {
     if (!enabled) return;
 
     for (const sel of REMOVE_SELECTORS) {
-      document.querySelectorAll(sel).forEach(removeWithHusk);
+      document.querySelectorAll(sel).forEach((el) => {
+        if (cssMissed(el)) removeWithHusk(el);
+      });
     }
 
     for (const sel of TEXT_MATCH_SELECTORS) {
       document.querySelectorAll(sel).forEach((el) => {
-        if (el.textContent.trim() === "Shorts") el.remove();
+        if (el.textContent.trim() === "Shorts" && cssMissed(el)) el.remove();
       });
     }
 
@@ -120,7 +130,7 @@
           "ytd-rich-item-renderer, ytd-video-renderer, " +
             "ytd-grid-video-renderer, ytd-compact-video-renderer"
         );
-        if (item) removeWithHusk(item);
+        if (item && cssMissed(item)) removeWithHusk(item);
       });
   }
 
