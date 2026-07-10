@@ -24,8 +24,8 @@
     },
     {
       "matches": ["*://*.youtube.com/*"],
-      "js": ["scripts/youtube-adblock.js"],
-      "css": ["styles/youtube-hide.css"],
+      "js": ["scripts/youtube-adblock.js", "scripts/youtube-noshorts.js"],
+      "css": ["styles/youtube-hide.css", "styles/youtube-noshorts.css"],
       "run_at": "document_start",
       "all_frames": true
     },

@@ -65,6 +65,115 @@
     );
   }
 
+  // ===================================================================
+  // SHORTS PRUNING — separate from the ad logic above. Removes Shorts
+  // shelves/items from feed, search, and guide payloads so the UI never
+  // builds them. Gated at prune time on the <html data-gb-noshorts>
+  // attribute, which scripts/youtube-noshorts.js (isolated world) sets
+  // from the hideShorts setting — so the popup toggle governs this
+  // layer too. Ad pruning above is NEVER affected by that attribute.
+  // ===================================================================
+
+  function shortsEnabled() {
+    const el = document.documentElement;
+    return !!el && el.hasAttribute("data-gb-noshorts");
+  }
+
+  // An innertube list item that IS Shorts content, in any of the
+  // shapes YouTube currently ships them.
+  function isShortsItem(item) {
+    if (!item || typeof item !== "object") return false;
+    if (
+      hasOwn.call(item, "reelShelfRenderer") ||
+      hasOwn.call(item, "reelItemRenderer") ||
+      hasOwn.call(item, "shortsLockupViewModel") ||
+      hasOwn.call(item, "shortsLockupViewModelV2")
+    ) {
+      return true;
+    }
+    // richShelfRenderer is also used for non-Shorts shelves — only a
+    // shelf marked Shorts (icon) or containing reel items counts.
+    if (item.richShelfRenderer && isShortsShelf(item.richShelfRenderer)) {
+      return true;
+    }
+    // Feed sections/items wrap their real content one level down.
+    if (item.richSectionRenderer && isShortsItem(item.richSectionRenderer.content)) {
+      return true;
+    }
+    if (item.richItemRenderer && isShortsItem(item.richItemRenderer.content)) {
+      return true;
+    }
+    // Search results occasionally ship Shorts as plain videoRenderers
+    // whose click target is the reel player.
+    if (
+      item.videoRenderer &&
+      item.videoRenderer.navigationEndpoint &&
+      item.videoRenderer.navigationEndpoint.reelWatchEndpoint
+    ) {
+      return true;
+    }
+    // The guide's Shorts entry (left sidebar data).
+    if (
+      item.guideEntryRenderer &&
+      item.guideEntryRenderer.icon &&
+      typeof item.guideEntryRenderer.icon.iconType === "string" &&
+      item.guideEntryRenderer.icon.iconType.indexOf("SHORTS") !== -1
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  function isShortsShelf(shelf) {
+    if (shelf.icon && typeof shelf.icon.iconType === "string" &&
+        shelf.icon.iconType.indexOf("SHORTS") !== -1) {
+      return true;
+    }
+    return Array.isArray(shelf.contents) && shelf.contents.some(isShortsItem);
+  }
+
+  // Walk the payload; drop Shorts items out of every array in place.
+  function pruneShortsDeep(node) {
+    if (Array.isArray(node)) {
+      for (let i = node.length - 1; i >= 0; i--) {
+        if (isShortsItem(node[i])) {
+          node.splice(i, 1);
+        } else {
+          pruneShortsDeep(node[i]);
+        }
+      }
+    } else if (node && typeof node === "object") {
+      for (const key in node) {
+        const v = node[key];
+        if (v && typeof v === "object") pruneShortsDeep(v);
+      }
+    }
+    return node;
+  }
+
+  // Only walk payloads that are plausibly YouTube UI data — every
+  // innertube response carries responseContext; initial data carries
+  // contents. Anything else is left completely alone.
+  function looksLikeBrowseData(obj) {
+    return (
+      obj &&
+      typeof obj === "object" &&
+      (hasOwn.call(obj, "responseContext") ||
+        hasOwn.call(obj, "contents") ||
+        hasOwn.call(obj, "onResponseReceivedActions") ||
+        hasOwn.call(obj, "onResponseReceivedCommands") ||
+        hasOwn.call(obj, "onResponseReceivedEndpoints"))
+    );
+  }
+
+  // Single funnel used by every interception point below: ads always,
+  // Shorts only while the toggle is on.
+  function processData(obj) {
+    if (looksLikePlayerData(obj)) pruneObject(obj);
+    if (shortsEnabled() && looksLikeBrowseData(obj)) pruneShortsDeep(obj);
+    return obj;
+  }
+
   // -----------------------------------------------------------------
   // 1. Inline bootstrap data: YouTube assigns
   //    `var ytInitialPlayerResponse = {...}` in an inline <script>,
@@ -79,7 +188,7 @@
           return value;
         },
         set(v) {
-          value = looksLikePlayerData(v) ? pruneObject(v) : v;
+          value = processData(v);
         }
       });
     } catch (_) {
@@ -87,14 +196,17 @@
     }
   }
   trapInitial("ytInitialPlayerResponse");
+  // ytInitialData is the feed/search bootstrap — it's where Shorts
+  // shelves live on a cold page load. processData only touches it for
+  // Shorts (it never matches the ad-side looksLikePlayerData check).
+  trapInitial("ytInitialData");
 
   // -----------------------------------------------------------------
   // 2. JSON.parse — covers XHR/text-based parsing paths.
   // -----------------------------------------------------------------
   const nativeParse = JSON.parse;
   JSON.parse = function (text, reviver) {
-    const result = nativeParse.call(this, text, reviver);
-    return looksLikePlayerData(result) ? pruneObject(result) : result;
+    return processData(nativeParse.call(this, text, reviver));
   };
   // Some YouTube code checks for native functions; keep the toString
   // honest enough not to advertise the wrap.
@@ -108,8 +220,6 @@
   // -----------------------------------------------------------------
   const nativeJson = Response.prototype.json;
   Response.prototype.json = function () {
-    return nativeJson.call(this).then((result) =>
-      looksLikePlayerData(result) ? pruneObject(result) : result
-    );
+    return nativeJson.call(this).then(processData);
   };
 })();

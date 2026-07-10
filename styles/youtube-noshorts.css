@@ -1,0 +1,55 @@
+/* GatewayBlock — YouTube Shorts removal
+   Every rule is scoped under html[data-gb-noshorts], which
+   scripts/youtube-noshorts.js sets from the hideShorts setting
+   (default ON). Flipping the popup toggle adds/removes the attribute,
+   so all of this turns on and off live with no page reload.
+
+   Selector strategy: structural/semantic hooks ([is-shorts],
+   overlay-style="SHORTS", a[href^="/shorts"] containers) rather than
+   class chains, because YouTube renames classes constantly. The JS
+   MutationObserver removes the few surfaces CSS can't express
+   (text-matched chips, i18n channel tabs, empty shelf husks). */
+
+/* ---- Shelves: home, subscriptions, search, related ---- */
+/* Classic shelf renderers */
+html[data-gb-noshorts] ytd-rich-shelf-renderer[is-shorts],
+html[data-gb-noshorts] ytd-reel-shelf-renderer,
+/* Whole feed section wrapping a Shorts shelf (kills leftover spacing) */
+html[data-gb-noshorts] ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+html[data-gb-noshorts] ytd-rich-section-renderer:has(ytd-reel-shelf-renderer),
+html[data-gb-noshorts] ytd-item-section-renderer:has(> #contents > ytd-reel-shelf-renderer:only-child),
+/* Newer view-model grid shelves (rolled out 2024+): a shelf whose
+   items link into /shorts/ */
+html[data-gb-noshorts] grid-shelf-view-model:has(a[href^="/shorts"]),
+html[data-gb-noshorts] ytd-rich-section-renderer:has(> #content > grid-shelf-view-model a[href^="/shorts"]),
+
+/* ---- Individual Shorts items anywhere in a feed or grid ---- */
+html[data-gb-noshorts] ytd-rich-item-renderer:has(a[href^="/shorts"]),
+html[data-gb-noshorts] ytd-grid-video-renderer:has(a[href^="/shorts"]),
+html[data-gb-noshorts] ytd-compact-video-renderer:has(a[href^="/shorts"]),
+html[data-gb-noshorts] ytm-shorts-lockup-view-model,
+html[data-gb-noshorts] ytm-shorts-lockup-view-model-v2,
+
+/* ---- Search results ---- */
+/* Result rows that are Shorts: either the link or the thumbnail
+   duration badge marks them */
+html[data-gb-noshorts] ytd-video-renderer:has(a[href^="/shorts"]),
+html[data-gb-noshorts] ytd-video-renderer:has(ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"]),
+html[data-gb-noshorts] ytd-video-renderer:has(badge-shape[aria-label="Shorts"]),
+
+/* ---- Left guide + collapsed mini-guide entries ---- */
+/* The guide Shorts entry: title attribute survives redesigns better
+   than classes; the JS fallback handles non-English UI languages */
+html[data-gb-noshorts] ytd-guide-entry-renderer:has(a#endpoint[title="Shorts"]),
+html[data-gb-noshorts] ytd-guide-entry-renderer:has(yt-formatted-string[title="Shorts"]),
+html[data-gb-noshorts] ytd-mini-guide-entry-renderer[aria-label="Shorts"],
+html[data-gb-noshorts] ytd-mini-guide-entry-renderer:has(a[title="Shorts"]),
+
+/* ---- Channel pages: the Shorts tab ---- */
+html[data-gb-noshorts] yt-tab-shape[tab-title="Shorts"],
+html[data-gb-noshorts] tp-yt-paper-tab:has(.tp-yt-paper-tab[aria-label="Shorts"]),
+
+/* ---- "Shorts" filter chips (English; JS handles other locales) ---- */
+html[data-gb-noshorts] yt-chip-cloud-chip-renderer:has(yt-formatted-string[title="Shorts"]) {
+  display: none !important;
+}
