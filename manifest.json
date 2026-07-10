@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "GatewayBlock",
-  "version": "1.0",
-  "description": "All-around ad blocker for Safari: network-level ad/tracker blocking, popup killing, and YouTube video ad skipping.",
+  "version": "1.1",
+  "description": "All-around ad blocker for Safari: network-level ad/tracker blocking, popup killing, YouTube video ad skipping, and optional YouTube Shorts removal.",
   "icons": {
     "48": "images/icon-48.png",
     "96": "images/icon-96.png",

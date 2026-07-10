@@ -1,6 +1,6 @@
 # GatewayBlock — Safari Ad Blocker
 
-A Safari Web Extension that does three things:
+A Safari Web Extension that does four things:
 
 1. **YouTube video ads** (the original problem) — two layers:
    - **Ad data pruning (primary)** — a script injected into the page's own
@@ -19,6 +19,12 @@ A Safari Web Extension that does three things:
 3. **Annoyance cleanup** — a global script that neutralizes popunder click
    hijacking, collapses leftover ad shells, and hides known ad containers
    with CSS on every site.
+4. **No Shorts** (toggleable, default on) — YouTube Shorts cease to exist:
+   shelves, guide entries, search results, channel tabs, and filter chips
+   are hidden by CSS + a data-level prune, and any `/shorts/<id>` link
+   opens as a normal `/watch` video. Everything is scoped under a single
+   `html[data-gb-noshorts]` attribute driven by the popup's "Hide YouTube
+   Shorts" switch, so toggling applies to open tabs instantly — no reload.
 
 ## Install (Mac, ~5 minutes, free)
 
@@ -83,9 +89,11 @@ videos where an ad plays for a second or two.
 manifest.json                  extension config (MV3)
 scripts/youtube-json-prune.js  strips ad data from API responses (primary)
 scripts/youtube-adblock.js     YouTube video ad skipper (fallback)
+scripts/youtube-noshorts.js    Shorts toggle owner + sweep + /shorts redirect
 scripts/global-annoyances.js   popunder shield + ad shell cleanup
 scripts/background.js          minimal background worker
 styles/youtube-hide.css        YouTube static ad hiding
+styles/youtube-noshorts.css    Shorts hiding (scoped to data-gb-noshorts)
 styles/global-hide.css         global cosmetic ad hiding
 rules/ad-networks.json         50 network blocking rules
 rules/trackers.json            30 tracker blocking rules
