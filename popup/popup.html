@@ -53,6 +53,52 @@
       opacity: 0.45;
       line-height: 1.45;
     }
+    /* Native-feeling toggle switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 20px;
+      flex: none;
+    }
+    .switch input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      cursor: pointer;
+    }
+    .switch .track {
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      background: rgba(128, 128, 128, 0.35);
+      transition: background 0.18s ease;
+      pointer-events: none;
+    }
+    .switch .track::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+      transition: transform 0.18s ease;
+    }
+    .switch input:checked + .track {
+      background: #30c552;
+    }
+    .switch input:checked + .track::after {
+      transform: translateX(14px);
+    }
+    .switch input:focus-visible + .track {
+      outline: 2px solid -apple-system-control-accent;
+      outline-offset: 1px;
+    }
   </style>
 </head>
 <body>
@@ -63,11 +109,20 @@
   <div class="row"><span><span class="dot"></span>Trackers blocked</span><span class="count">30 rules</span></div>
   <div class="row"><span><span class="dot"></span>Popups / popunders</span><span class="count">20 rules + shield</span></div>
   <div class="row"><span><span class="dot"></span>YouTube video ads</span><span class="count">skip + 16x</span></div>
+  <div class="row">
+    <span><span class="dot" id="shorts-dot"></span>Hide YouTube Shorts</span>
+    <label class="switch">
+      <input type="checkbox" id="hide-shorts-toggle" checked />
+      <span class="track"></span>
+    </label>
+  </div>
 
   <div class="foot">
     Video ads on YouTube are skipped or fast-forwarded automatically.
     If one slips through, refresh the page — YouTube changes its
     player markup periodically.
   </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>
