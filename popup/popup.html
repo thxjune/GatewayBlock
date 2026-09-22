@@ -107,7 +107,7 @@
 
   <div class="row"><span><span class="dot"></span>Ad networks blocked</span><span class="count">50 rules</span></div>
   <div class="row"><span><span class="dot"></span>Trackers blocked</span><span class="count">30 rules</span></div>
-  <div class="row"><span><span class="dot"></span>Popups / popunders</span><span class="count">20 rules + shield</span></div>
+  <div class="row"><span><span class="dot"></span>Popups / popunders</span><span class="count">54 rules</span></div>
   <div class="row"><span><span class="dot"></span>YouTube video ads</span><span class="count">skip + 16x</span></div>
   <div class="row">
     <span><span class="dot" id="shorts-dot"></span>Hide YouTube Shorts</span>
@@ -116,11 +116,33 @@
       <span class="track"></span>
     </label>
   </div>
+  <div class="row">
+    <span><span class="dot" id="shield-dot"></span>Click shield</span>
+    <label class="switch">
+      <input type="checkbox" id="shield-toggle" checked />
+      <span class="track"></span>
+    </label>
+  </div>
+  <div class="row">
+    <span><span class="dot" id="sandbox-dot"></span>Sandbox video embeds</span>
+    <label class="switch">
+      <input type="checkbox" id="sandbox-toggle" checked />
+      <span class="track"></span>
+    </label>
+  </div>
+  <div class="row site" id="site-row" hidden>
+    <span><span class="dot" id="site-dot"></span><span id="site-host">this site</span><span class="count" id="site-stat"></span></span>
+    <label class="switch" title="Pause the click shield on this site">
+      <input type="checkbox" id="site-toggle" />
+      <span class="track"></span>
+    </label>
+  </div>
 
   <div class="foot">
-    Video ads on YouTube are skipped or fast-forwarded automatically.
-    If one slips through, refresh the page — YouTube changes its
-    player markup periodically.
+    Click shield stops the "click Play, land on an ad" hijack: popunders,
+    same-tab redirects, and invisible layers over the player. The site row
+    shows attempts blocked on the current page; its switch pauses the
+    shield there if a site misbehaves with it on.
   </div>
 
   <script src="popup.js"></script>

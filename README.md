@@ -1,6 +1,6 @@
 # GatewayBlock — Safari Ad Blocker
 
-A Safari Web Extension that does four things:
+A Safari Web Extension that does five things:
 
 1. **YouTube video ads** (the original problem) — two layers:
    - **Ad data pruning (primary)** — a script injected into the page's own
@@ -14,12 +14,32 @@ A Safari Web Extension that does four things:
      the pruner misses (e.g. server-stitched ads). It also removes
      YouTube's "ad blockers violate..." enforcement dialog and resumes
      playback.
-2. **Network-level blocking** — 100 declarative rules blocking the major ad
-   networks, trackers, and popup/popunder networks before they even load.
-3. **Annoyance cleanup** — a global script that neutralizes popunder click
-   hijacking, collapses leftover ad shells, and hides known ad containers
-   with CSS on every site.
-4. **No Shorts** (toggleable, default on) — YouTube Shorts cease to exist:
+2. **Network-level blocking** — 134 declarative rules blocking the major ad
+   networks, trackers, and popup/popunder networks before they even load,
+   including the Monetag/PropellerAds "onclick" landing path
+   (`/afu.php?zoneid=`) on any domain, since their tag domains rotate.
+3. **Click shield** (v1.2) — the "click Play, land on an ad, go back, click
+   again" hijack. A script in the page's own JS context
+   (`scripts/click-shield.js`, `world: MAIN`, every frame) does seven
+   things: disarms onclick ad tags (`<script data-zone>` /
+   `tag.min.js`) the moment their `src` is assigned; records every
+   trusted click (real link? real button? invisible layer? over the
+   player?); cancels script-driven cross-site navigations that follow a
+   click on anything that isn't a visible link to that destination
+   (Navigation API `navigate` event); replaces `window.open` on window,
+   `Window.prototype` and same-origin frame windows with a policy that
+   returns `null` for popunders; drops detached/hidden cross-site anchors
+   clicked programmatically and hidden `target=_blank` forms; restores
+   links whose `href` was swapped between mousedown and click;
+   neutralizes invisible layers over the player (`pointer-events: none`)
+   and replays the click on what's underneath; and sandboxes third-party
+   player iframes (no `allow-popups`, no `allow-top-navigation`) before
+   their document is created — the only reliable defense when the hijack
+   lives inside the embed. The popup shows attempts blocked on the
+   current site and can pause the shield per site.
+4. **Annoyance cleanup** — collapses leftover ad shells and hides known
+   ad containers with CSS on every site.
+5. **No Shorts** (toggleable, default on) — YouTube Shorts cease to exist:
    shelves, guide entries, search results, channel tabs, and filter chips
    are hidden by CSS + a data-level prune, and any `/shorts/<id>` link
    opens as a normal `/watch` video. Everything is scoped under a single
@@ -76,9 +96,33 @@ blocker can remove the ad — the 16x fast-forward approach in this script
 is the standard mitigation and usually still works, but there will be
 videos where an ad plays for a second or two.
 
+## Click shield — testing and tuning
+
+Never test against a live streaming site while a movie is playing in
+Safari. The shield has a headless WebKit harness (a hidden `WKWebView`
+that injects `click-shield.js` as a document-start user script in every
+frame and fires *trusted* mouse events): 26 scenarios covering same-tab
+redirects, popunders, `open(self)+redirect`, ghost anchors/divs over the
+player, layers injected on mousedown, detached-anchor `.click()`,
+`dispatchEvent`, `iframe.contentWindow.open`, hidden forms, href swaps,
+sandboxed player iframes, `data-zone` tags, plus the legit cases that
+must keep working (visible links, same-site buttons, redirects with no
+click, `window.open` from a real button). The harness lives in the
+session scratchpad when built; the recipe is in the vault project note.
+
+Policy knobs worth knowing: on a page that has a `<video>` or player
+iframe, a *script-driven* cross-site navigation after clicking a plain
+button is blocked (on other pages it's allowed, so "Sign in with Google"
+style buttons keep working); destinations on the trusted list
+(Google/Apple/Stripe/PayPal/Shopify/...) are always allowed from real
+controls; once a page has shown one hijack it is "hostile" for the tab
+session and every third-party iframe on it gets sandboxed.
+
+Add `data-gb-debug` to `<html>` in Web Inspector to see the shield's
+decisions in the console.
+
 ## Upgrade ideas
 
-- Per-site on/off toggle in the popup (wire it through browser.storage)
 - Auto-updating filter lists: fetch EasyList, convert with AdGuard's
   SafariConverterLib, and swap the JSON rule files on a schedule
 - Badge counter showing blocked requests per page
@@ -90,14 +134,16 @@ manifest.json                  extension config (MV3)
 scripts/youtube-json-prune.js  strips ad data from API responses (primary)
 scripts/youtube-adblock.js     YouTube video ad skipper (fallback)
 scripts/youtube-noshorts.js    Shorts toggle owner + sweep + /shorts redirect
-scripts/global-annoyances.js   popunder shield + ad shell cleanup
+scripts/click-shield.js        click-hijack / popunder shield (page world, all frames)
+scripts/shield-bridge.js       settings attributes + popup stats for the shield
+scripts/global-annoyances.js   ad shell cleanup + scroll-lock release
 scripts/background.js          minimal background worker
 styles/youtube-hide.css        YouTube static ad hiding
 styles/youtube-noshorts.css    Shorts hiding (scoped to data-gb-noshorts)
 styles/global-hide.css         global cosmetic ad hiding
 rules/ad-networks.json         50 network blocking rules
 rules/trackers.json            30 tracker blocking rules
-rules/popups-annoyances.json   20 popup network rules
+rules/popups-annoyances.json   54 popup / popunder / onclick-tag rules
 popup/                         toolbar popup UI
 images/                        icons
 ```

@@ -3,9 +3,14 @@
  *
  * Runs on every page (except YouTube, which has its own script).
  * Handles the stuff network rules can't:
- *  - popunder/click-hijack scripts that open windows on your first click
  *  - leftover empty ad containers
- *  - generic "please disable your ad blocker" nag overlays
+ *  - scroll locks left behind by removed nag overlays
+ *
+ * Popunder / click-hijack protection used to live here as a window.open
+ * wrapper. It never worked: this file runs in Safari's isolated world,
+ * whose window.open is a separate wrapper the page never calls. That
+ * job moved to scripts/click-shield.js, which runs in the page's own
+ * context (world: MAIN).
  */
 
 (() => {
@@ -14,41 +19,7 @@
   if (location.hostname.endsWith("youtube.com")) return;
 
   // -----------------------------------------------------------------
-  // 1. Popunder / click-hijack protection
-  //    Many shady sites bind a one-time click listener that calls
-  //    window.open(). We wrap window.open and reject calls that are
-  //    (a) not triggered by a real trusted user gesture on a link, or
-  //    (b) pointed at known garbage.
-  // -----------------------------------------------------------------
-  const realOpen = window.open.bind(window);
-  let lastTrustedClick = 0;
-
-  document.addEventListener(
-    "click",
-    (e) => {
-      if (e.isTrusted) lastTrustedClick = Date.now();
-    },
-    true
-  );
-
-  window.open = function (url, ...rest) {
-    const sinceClick = Date.now() - lastTrustedClick;
-    const clickedRealLink =
-      sinceClick < 1000 &&
-      document.activeElement &&
-      (document.activeElement.closest?.("a[href]") ||
-        document.activeElement.tagName === "A");
-
-    // Allow window.open only shortly after a genuine click on a link
-    if (clickedRealLink || (sinceClick < 200 && url && !/^javascript:/i.test(String(url)))) {
-      return realOpen(url, ...rest);
-    }
-    // Swallow the popup/popunder
-    return null;
-  };
-
-  // -----------------------------------------------------------------
-  // 2. Collapse empty ad containers left behind by network blocking
+  // 1. Collapse empty ad containers left behind by network blocking
   // -----------------------------------------------------------------
   const GENERIC_AD_SELECTORS = [
     "ins.adsbygoogle",
@@ -70,7 +41,7 @@
   }
 
   // -----------------------------------------------------------------
-  // 3. Scroll-lock release
+  // 2. Scroll-lock release
   //    Some overlay/nag scripts freeze scrolling via body styles.
   //    If an overlay was removed but scrolling is still locked, free it.
   // -----------------------------------------------------------------
